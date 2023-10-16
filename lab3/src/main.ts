@@ -7,7 +7,7 @@ import generateQuestion from "./utils/generateQuestion";
 const DEFAULT_PARAMETERS = {
   size: 5,
   max: 10,
-  dim: 2,
+  dim: 9,
 } as const;
 
 const gameSchema = z.object({
@@ -25,10 +25,18 @@ const games = new Map<string, Omit<Game, "gameId">>();
 
 const app = new Elysia();
 
-app.post("/mmind", ({ body }) => {
+app.post("/mmind", ({ body, set }) => {
   const data = gameSchema.omit({ gameId: true }).partial().parse(body);
 
-  const answer = generateQuestion(data.size ?? DEFAULT_PARAMETERS.size);
+  if (data.dim && (data?.dim <= 0 || data?.dim > 9)) {
+    set.status = 400;
+    return new Error("Dim has to be a number between 0 and 10");
+  }
+
+  const answer = generateQuestion(
+    data.size ?? DEFAULT_PARAMETERS.size,
+    data.dim ?? DEFAULT_PARAMETERS.dim,
+  );
 
   const newGameId = uuid();
   const newGame = {
@@ -49,7 +57,7 @@ app.post("/mmind", ({ body }) => {
   };
 });
 
-app.patch("/mmind", ({ body }) => {
+app.patch("/mmind", ({ body, set }) => {
   try {
     const data = z.array(z.any()).nonempty().parse(body);
 
@@ -84,6 +92,8 @@ app.patch("/mmind", ({ body }) => {
       ...round,
     };
   } catch (e) {
+    set.status = 400;
+
     if (e instanceof ZodError)
       return new Error("You have to pass a non empty array.");
 
