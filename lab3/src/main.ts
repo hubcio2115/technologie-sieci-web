@@ -28,7 +28,7 @@ const app = new Elysia();
 app.post("/mmind", ({ body, set }) => {
   const data = gameSchema.omit({ gameId: true }).partial().parse(body);
 
-  if (data.dim && (data?.dim <= 0 || data?.dim > 9)) {
+  if (data.dim && (data?.dim < 0 || data?.dim > 9)) {
     set.status = 400;
     return new Error("Dim has to be a number between 0 and 10");
   }
@@ -57,7 +57,7 @@ app.post("/mmind", ({ body, set }) => {
   };
 });
 
-app.patch("/mmind", ({ body, set }) => {
+app.patch("/mmind", async ({ body, set }) => {
   try {
     const data = z.array(z.any()).nonempty().parse(body);
 
@@ -72,7 +72,7 @@ app.patch("/mmind", ({ body, set }) => {
         `Wrong length of the answer it should contain ${game.max} digits`,
       );
 
-    const round = rateAnswer(game.answer!, data.slice(1));
+    const round = await rateAnswer(game.answer!, data.slice(1));
 
     if (round.black === game.answer?.length) {
       games.delete(gameId);

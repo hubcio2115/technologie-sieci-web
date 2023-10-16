@@ -3,7 +3,10 @@ type Points = {
   white: number;
 };
 
-export default function rateAnswer(answer: number[], guess: number[]): Points {
+export default async function rateAnswer(
+  answer: number[],
+  guess: number[],
+): Promise<Points> {
   const res: { black: number[]; white: number[] } = {
     black: [],
     white: [],
