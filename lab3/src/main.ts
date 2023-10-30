@@ -86,22 +86,40 @@ app.patch("/mmind", async (req) => {
     const { data } = body;
 
     const gameId = data[0];
-    if (typeof gameId !== "string")
+    if (typeof gameId !== "string") {
+      req.set.status = 403;
+
       throw new TypeError("GameId has to be of type string.");
+    }
 
     const game = games.get(gameId);
     if (!game) throw new Error("Provided game id has not been found");
-    if (game.size !== data.length - 1)
+    if (game.size !== data.length - 1) {
+      req.set.status = 403;
+
       throw new Error(
         `Wrong length of the answer it should contain ${game.max} digits`,
       );
+    }
 
     const round = await rateAnswer(game.answer!, data.slice(1));
 
-    if (round.black === game.answer?.length) {
-      games.delete(gameId);
-      return { message: "You won!" };
+    const areValuesGreaterThanDim = data
+      .slice(1)
+      .reduce((el, acc) => acc || el < game.dim, false);
+    if (areValuesGreaterThanDim) {
+      req.set.status = 403;
+
+      throw new Error(
+        `The answer should only contain digits that are less than: ${game.dim}`,
+      );
     }
+
+    if (round)
+      if (round.black === game.answer?.length) {
+        games.delete(gameId);
+        return { message: "You won!" };
+      }
 
     game.round++;
 
