@@ -6,7 +6,7 @@ import { onMounted, onUnmounted, ref } from "vue";
 
 interface GameBoardProps extends Game {}
 
-const { size, gameId } = defineProps<GameBoardProps>();
+const { size, gameId, dim } = defineProps<GameBoardProps>();
 
 const currendIndex = ref(0);
 const answer = ref(Array.from(Array(size).keys()).map(() => ""));
@@ -46,7 +46,7 @@ function handleKeyDown(e: KeyboardEvent) {
       submitRound(answer.value.map((digit) => +digit));
       break;
     default:
-      if (/[0-9]/.test(e.key) && currendIndex.value < size) {
+      if (/[0-9]/.test(e.key) && currendIndex.value < size && +e.key < dim) {
         const idx = currendIndex.value++;
         answer.value[idx] = e.key;
       }

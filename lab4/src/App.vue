@@ -79,8 +79,8 @@ async function startGame() {
       :size="size"
       :max="max"
       :game-id="game.gameId"
-      :round="0"
-      :dim="9"
+      :round="game.round"
+      :dim="dim"
     />
   </main>
 </template>
