@@ -25,11 +25,23 @@ const games = new Map<string, Omit<Game, "gameId">>();
 
 const app = new Elysia();
 
-app.post("/mmind", ({ body, set }) => {
-  const data = gameSchema.omit({ gameId: true }).partial().parse(body);
+app.post("/mmind", (req) => {
+  const body = gameSchema
+    .omit({ gameId: true })
+    .partial()
+    .safeParse(JSON.parse(req.body as string));
+
+  if (!body.success) {
+    console.log(body.error);
+
+    req.set.status = 400;
+    return new Error("Wrong data's been provided.");
+  }
+
+  const { data } = body;
 
   if (data.dim && (data?.dim < 0 || data?.dim > 9)) {
-    set.status = 400;
+    req.set.status = 400;
     return new Error("Dim has to be a number between 0 and 10");
   }
 
@@ -57,9 +69,21 @@ app.post("/mmind", ({ body, set }) => {
   };
 });
 
-app.patch("/mmind", async ({ body, set }) => {
+app.patch("/mmind", async (req) => {
   try {
-    const data = z.array(z.any()).nonempty().parse(body);
+    const body = z
+      .array(z.any())
+      .nonempty()
+      .safeParse(JSON.parse(req.body as string));
+
+    if (!body.success) {
+      console.log(body.error);
+
+      req.set.status = 400;
+      return new Error("Wrong data's been provided!");
+    }
+
+    const { data } = body;
 
     const gameId = data[0];
     if (typeof gameId !== "string")
@@ -76,7 +100,7 @@ app.patch("/mmind", async ({ body, set }) => {
 
     if (round.black === game.answer?.length) {
       games.delete(gameId);
-      return "You won!";
+      return { message: "You won!" };
     }
 
     game.round++;
@@ -84,7 +108,9 @@ app.patch("/mmind", async ({ body, set }) => {
     if (game.round === game.max) {
       games.delete(gameId);
 
-      return `You lost with a score of black: ${round.black}, white: ${round.white}`;
+      return {
+        message: `You lost with a score of ⬜: ${round.white} ⬛: ${round.black}`,
+      };
     }
 
     return {
@@ -92,7 +118,7 @@ app.patch("/mmind", async ({ body, set }) => {
       ...round,
     };
   } catch (e) {
-    set.status = 400;
+    req.set.status = 400;
 
     if (e instanceof ZodError)
       return new Error("You have to pass a non empty array.");
