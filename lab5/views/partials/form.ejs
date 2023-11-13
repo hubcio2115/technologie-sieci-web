@@ -1,0 +1,13 @@
+<form
+  action="<%= `${process.env.API_HOST}:${process.env.PORT}` %>/users/"
+  method="post"
+  enctype="multipart/form-data"
+>
+  <label for="login">Login: </label>
+  <input type="text" id="login" required name="user_login" />
+
+  <label for="email">Email: </label>
+  <input type="email" id="email" required name="user_email" />
+
+  <button type="submit">Add User</button>
+</form>

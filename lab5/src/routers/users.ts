@@ -1,34 +1,44 @@
-import { Router } from "express";
-import User from "../models/User";
+import { Router } from 'express';
+import User from '../models/User';
+import multer from 'multer';
 
 const router = Router();
+const upload = multer();
 
 // Pobranie danych wszystkich użytkowników
-router.get("/", (_, res) => {
-  return res.send(User.find({}));
+router.get('/', async (_, res) => {
+  const users = await User.find({});
+
+  return res.render('index', { users });
 });
 
 // Utworzenie nowego użytkownika
-router.post("/", async ({ body }, res) => {
-  const userData = { date: new Date(body.date), ...body };
+router.post('/', upload.none(), async ({ body }, res) => {
+  const userData = {
+    login: body['user_login'],
+    email: body['user_email'],
+    registrationDate: new Date(),
+  };
 
   const newUser = new User(userData);
 
   const err = newUser.validateSync();
   if (err) return res.sendStatus(400);
 
-  const user = await newUser.save();
+  await newUser.save();
 
-  return res.send(user);
+  return res.redirect('/users');
 });
 
 // Pobranie danych użytkownika o podanym userId
-router.get("/:userId", async (req, res) => {
-  return res.send(await User.findById(req.params.userId));
+router.get('/:userId', async (req, res) => {
+  const user = await User.findById(req.params.userId);
+
+  return res.render('userDetails', { user });
 });
 
 // Zastąpienie danych użytkownika o podanym userId nowym „kompletem”
-router.put("/:userId", async ({ body, params: { userId } }, res) => {
+router.put('/:userId', async ({ body, params: { userId } }, res) => {
   const userData = { id: userId, date: new Date(body.date), ...body };
 
   const newUser = new User(userData);
@@ -42,7 +52,7 @@ router.put("/:userId", async ({ body, params: { userId } }, res) => {
 });
 
 // Usuniecie użytkownika o podanym userId
-router.delete("/:userId", async ({ params: { userId } }, res) => {
+router.delete('/:userId', async ({ params: { userId } }, res) => {
   const user = await User.findByIdAndDelete(userId);
 
   if (!user) return res.sendStatus(404);
@@ -51,7 +61,7 @@ router.delete("/:userId", async ({ params: { userId } }, res) => {
 });
 
 // „Unacześnienie” wybranych danych użytkownika o podanym userId
-router.patch("/:userId", async ({ params: { userId }, body }, res) => {
+router.patch('/:userId', async ({ params: { userId }, body }, res) => {
   const userQuery = new User({
     id: userId,
     date: new Date(body.date),
