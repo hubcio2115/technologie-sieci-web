@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="en">
+  <%- include('./partials/head.ejs') %>
+  <body>
+    <h1>Admin</h1>
+
+    <%- include("./partials/form.ejs") %>
+
+    <ul>
+      <% users.map(({_id, login, email}) => { %>
+      <li>
+        <span><%= login %>: </span>
+        <span><%= email %></span>
+        <button type="button" onclick="deleteUser('<%= _id.toString() %>')">
+          delete
+        </button>
+      </li>
+      <%}) %>
+    </ul>
+
+    <script>
+      async function deleteUser(userId) {
+        const res = await fetch(`http://localhost:3000/users/${userId}`, {
+          method: 'DELETE',
+        });
+
+        if (res.ok) window.location.reload();
+      }
+    </script>
+  </body>
+</html>
