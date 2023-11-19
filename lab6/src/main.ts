@@ -1,39 +1,49 @@
 import express from 'express';
-import users from './routers/users';
 import { connect } from 'mongoose';
-import multer from 'multer';
+import session from 'express-session';
+import cookieParser from 'cookie-parser';
+
+import { env } from '~/env';
+import auth from '~/routers/auth';
+import users from '~/routers/users';
+import passport from '~/auth/passport';
 
 const app = express();
 
 app.use(express.json());
+app.use(express.urlencoded({ extended: false }));
+app.use(cookieParser());
+
+app.use(
+  session({
+    secret: env.SESSION_SECRET,
+    resave: false,
+    saveUninitialized: false,
+    cookie: { secure: true },
+  }),
+);
+
+app.use(passport.initialize());
+
 app.set('view engine', 'ejs');
 
 // Dodajemy usługi REST, które należy zdefiniować w pliku „users.ts”
 // znajdującym się w podkatalogu „routes”
+app.use('/auth', auth);
 app.use('/users', users);
-
-// Wczytujemy ewentualne dane konfiguracyjne z pliku „.env”
-const dbConnData = {
-  host: process.env.MONGO_HOST || 'localhost',
-  port: process.env.MONGO_PORT || 27017,
-  database: process.env.MONGO_DATABASE || 'test',
-};
 
 // Łączymy się z bazą MongoDB i jeśli się to uda, uruchamiamy serwer API.
 try {
   const res = await connect(
-    `mongodb://${dbConnData.host}:${dbConnData.port}/${dbConnData.database}?authSource=admin`,
+    `mongodb://${env.MONGO_HOST}:${env.MONGO_PORT}/${env.MONGO_DB}?authSource=admin`,
   );
 
   console.log(
     `Connected to MongoDB. Database name: "${res.connections.at(0)?.name}"`,
   );
 
-  const apiPort = process.env.PORT || 3000;
-  const apiHost = process.env.API_HOST || 'localhost';
-
-  app.listen(apiPort, () => {
-    console.log(`API server available from: http://${apiHost}:${apiPort}`);
+  app.listen(env.PORT, () => {
+    console.log(`API server available from: ${env.API_HOST}:${env.PORT}`);
   });
 } catch (err) {
   console.error('Error connecting to MongoDB', err);

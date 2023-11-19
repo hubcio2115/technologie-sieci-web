@@ -4,28 +4,23 @@
   <body>
     <h1>Admin</h1>
 
-    <%- include("./partials/form.ejs") %>
+    <%- include("./partials/addUserForm.ejs") %>
 
     <ul>
-      <% users.map(({_id, login, email}) => { %>
-      <li>
-        <span><%= login %>: </span>
-        <span><%= email %></span>
-        <button type="button" onclick="deleteUser('<%= _id.toString() %>')">
+      <% users.map(({_id, username, email}) => { %>
+      <li id="user_<%= _id.toString() %>">
+        <a href=""><%= username %>: <%= email %></a>
+
+        <button
+          type="button"
+          hx-delete="http://localhost:3000/users/<%= _id.toString() %>"
+          hx-target="#user_<%= _id.toString() %>"
+          hx-swap="delete"
+        >
           delete
         </button>
       </li>
       <%}) %>
     </ul>
-
-    <script>
-      async function deleteUser(userId) {
-        const res = await fetch(`http://localhost:3000/users/${userId}`, {
-          method: 'DELETE',
-        });
-
-        if (res.ok) window.location.reload();
-      }
-    </script>
   </body>
 </html>

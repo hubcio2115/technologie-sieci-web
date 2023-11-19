@@ -11,14 +11,21 @@
     "strict": true,
     "noUncheckedIndexedAccess": true,
 
-    "moduleResolution": "Bundler",
+    "moduleResolution": "node",
     "module": "ESNext",
     "noEmit": true,
 
     "lib": ["es2022"],
 
+    "baseUrl": "./",
+    "paths": {
+      "~/*": ["./src/*"]
+    },
+
     "types": [
       "bun-types" // add Bun global
     ]
-  }
+  },
+  "include": ["/**/*.ts", "main.js"],
+  "exclude": ["node_modules"]
 }

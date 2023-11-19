@@ -1,23 +1,24 @@
 import { Router } from 'express';
-import User from '../models/User';
-import multer from 'multer';
+import User from '~/models/User';
+import { isValidObjectId } from 'mongoose';
+import { ensureLoggedIn } from 'connect-ensure-login';
 
 const router = Router();
-const upload = multer();
 
 // Pobranie danych wszystkich użytkowników
-router.get('/', async (_, res) => {
+router.get('/', ensureLoggedIn('/auth/login'), async (req, res) => {
   const users = await User.find({});
 
   return res.render('index', { users });
 });
 
 // Utworzenie nowego użytkownika
-router.post('/', upload.none(), async ({ body }, res) => {
+router.post('/', async ({ body }, res) => {
   const userData = {
-    login: body['user_login'],
-    email: body['user_email'],
+    username: body.username,
+    email: body.email,
     registrationDate: new Date(),
+    role: 'user',
   };
 
   const newUser = new User(userData);
@@ -31,14 +32,18 @@ router.post('/', upload.none(), async ({ body }, res) => {
 });
 
 // Pobranie danych użytkownika o podanym userId
-router.get('/:userId', async (req, res) => {
-  const user = await User.findById(req.params.userId);
+router.get('/:userId', async ({ params: { userId } }, res) => {
+  if (!isValidObjectId(userId)) return res.sendStatus(404);
+
+  const user = await User.findById(userId);
 
   return res.render('userDetails', { user });
 });
 
 // Zastąpienie danych użytkownika o podanym userId nowym „kompletem”
 router.put('/:userId', async ({ body, params: { userId } }, res) => {
+  if (!isValidObjectId(userId)) return res.sendStatus(404);
+
   const userData = { id: userId, date: new Date(body.date), ...body };
 
   const newUser = new User(userData);
@@ -53,6 +58,8 @@ router.put('/:userId', async ({ body, params: { userId } }, res) => {
 
 // Usuniecie użytkownika o podanym userId
 router.delete('/:userId', async ({ params: { userId } }, res) => {
+  if (!isValidObjectId(userId)) return res.sendStatus(404);
+
   const user = await User.findByIdAndDelete(userId);
 
   if (!user) return res.sendStatus(404);
