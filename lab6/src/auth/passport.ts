@@ -1,40 +1,34 @@
-import type { ObjectId } from 'mongoose';
-import passport from 'passport';
-import { Strategy as LocalStrategy } from 'passport-local';
-import { env } from '~/env';
-import User, { type User as TUser } from '~/models/User';
-
-const USER_NOT_FOUND_MESSAGE = 'No user found';
-const INCORRECT_CREDENTIALS_MESSAGE = 'Incorrect credentials';
+import passport from "passport";
+import { Strategy as LocalStrategy } from "passport-local";
+import User from "~/models/User";
 
 passport.use(
   new LocalStrategy(async (username, password, done) => {
     const user = await User.findOne({ username });
 
-    if (!user) return done(null, false);
+    if (!user) return done(null, false, { message: "Authentication failed." });
 
     const authorized = await Bun.password.verify(password, user.password);
 
-    if (!authorized) return done(null, false);
+    if (!authorized)
+      return done(null, false, { message: "Authentication failed." });
 
-    return done(null, user);
+    return done(null, user._id.toString());
   }),
 );
 
-passport.serializeUser((user, done) => {
-  process.nextTick(() => {
-    const temp = user as TUser & { _id: ObjectId };
-    return done(null, {
-      id: temp._id.toString(),
-      username: temp.username,
-      role: temp.role,
-    });
-  });
+passport.serializeUser((id, done) => {
+  return done(null, id);
 });
 
-passport.deserializeUser((user, done) => {
-  process.nextTick(() => {
-    return done(null, user as TUser);
+passport.deserializeUser(async (id, done) => {
+  const user = await User.findById(id);
+
+  return done(null, {
+    id,
+    username: user?.username,
+    email: user?.email,
+    role: user?.role,
   });
 });
 

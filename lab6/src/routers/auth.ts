@@ -1,71 +1,72 @@
-import { Router } from 'express';
-import { z } from 'zod';
-import User from '~/models/User';
-import { env } from '~/env';
-import { sign } from 'jsonwebtoken';
-import passport from 'passport';
+import { Router } from "express";
+import { log } from "sys";
+import { z } from "zod";
+import passport from "~/auth/passport";
+import { checkNotAuthenticated } from "~/middlewares/isAuthed";
 
 const router = Router();
 
-router.get('/login', (_, res) => {
-  return res.render('login');
+router.get("/login", (req, res) => {
+  return res.render("login");
 });
 
-router.post(
-  '/login',
-  passport.authenticate('local', {
-    successRedirect: '/users',
-    failureRedirect: 'login',
-    failWithError: true,
+router.post("/login", (req, res, next) => {
+  passport.authenticate("local", {
+    successRedirect: "/users",
+    failureRedirect: "/auth/login",
     failureMessage: true,
-  }),
-);
+  })(req, res, next);
+});
 
-router.post('/logout', (req, res) => {
+router.get("/logout", (req, res) => {
   req.logOut({ keepSessionInfo: false }, () => {
-    res.redirect('http://localhost:3000/auth/login');
+    res.redirect("login");
   });
 });
 
-router.get('/register', (_, res) => {
-  return res.render('register');
+router.get("/register", checkNotAuthenticated, (req, res) => {
+  return res.render("register");
 });
 
-router.post('/register', async ({ body, login }, res, next) => {
-  try {
-    const parsedBody = z
-      .object({
-        username: z.string(),
-        email: z.string().email(),
-        password: z.string(),
-      })
-      .safeParse(body);
+router.post(
+  "/register",
+  checkNotAuthenticated,
+  async ({ body, login }, res, next) => {
+    try {
+      const parsedBody = z
+        .object({
+          username: z.string(),
+          email: z.string().email(),
+          password: z.string(),
+        })
+        .safeParse(body);
 
-    if (!parsedBody.success) {
-      res.status(400);
-      return res.send({ message: "Password's not been provided." });
-    }
+      if (!parsedBody.success) {
+        res.status(400);
+        return res.send({ message: "Password's not been provided." });
+      }
 
-    const hashedPassword = await Bun.password.hash(parsedBody.data.password);
+      const hashedPassword = await Bun.password.hash(parsedBody.data.password);
 
-    return res.redirect('/login');
+      return res.redirect("/login");
 
-    // const user = await User.create({
-    //   email: parsedBody.data.user_email,
-    //   username: parsedBody.data.user_username,
-    //   password: hash,
-    //   registrationDate: new Date(),
-    // });
+      // const user = await User.create({
+      //   email: parsedBody.data.user_email,
+      //   username: parsedBody.data.user_username,
+      //   password: hash,
+      //   registrationDate: new Date(),
+      // });
 
-    // login(user, (err) => {
-    //   if (err) {
-    //     return next(err);
-    //   }
-    //   res.redirect('http://localhost:3000/users');
-    // });
-  } catch (e) {}
+      // login(user, (err) => {
+      //   if (err) {
+      //     return next(err);
+      //   }
+      //   res.redirect('http://localhost:3000/users');
+      // });
+    } catch (e) {}
 
-  return res.send({ message: 'register' });
-});
+    return res.send({ message: "register" });
+  },
+);
 
 export default router;

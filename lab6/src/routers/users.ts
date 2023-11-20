@@ -1,24 +1,24 @@
-import { Router } from 'express';
-import User from '~/models/User';
-import { isValidObjectId } from 'mongoose';
-import { ensureLoggedIn } from 'connect-ensure-login';
+import { Router } from "express";
+import User from "~/models/User";
+import { isValidObjectId } from "mongoose";
+import { checkAuthenticated } from "~/middlewares/isAuthed";
 
 const router = Router();
 
 // Pobranie danych wszystkich użytkowników
-router.get('/', ensureLoggedIn('/auth/login'), async (req, res) => {
+router.get("/", checkAuthenticated, async (req, res) => {
   const users = await User.find({});
 
-  return res.render('index', { users });
+  return res.render("index", { users, user: req.user });
 });
 
 // Utworzenie nowego użytkownika
-router.post('/', async ({ body }, res) => {
+router.post("/", async ({ body }, res) => {
   const userData = {
     username: body.username,
     email: body.email,
     registrationDate: new Date(),
-    role: 'user',
+    role: "user",
   };
 
   const newUser = new User(userData);
@@ -28,20 +28,20 @@ router.post('/', async ({ body }, res) => {
 
   await newUser.save();
 
-  return res.redirect('/users');
+  return res.redirect("/users");
 });
 
 // Pobranie danych użytkownika o podanym userId
-router.get('/:userId', async ({ params: { userId } }, res) => {
+router.get("/:userId", async ({ params: { userId } }, res) => {
   if (!isValidObjectId(userId)) return res.sendStatus(404);
 
   const user = await User.findById(userId);
 
-  return res.render('userDetails', { user });
+  return res.render("userDetails", { user });
 });
 
 // Zastąpienie danych użytkownika o podanym userId nowym „kompletem”
-router.put('/:userId', async ({ body, params: { userId } }, res) => {
+router.put("/:userId", async ({ body, params: { userId } }, res) => {
   if (!isValidObjectId(userId)) return res.sendStatus(404);
 
   const userData = { id: userId, date: new Date(body.date), ...body };
@@ -57,7 +57,7 @@ router.put('/:userId', async ({ body, params: { userId } }, res) => {
 });
 
 // Usuniecie użytkownika o podanym userId
-router.delete('/:userId', async ({ params: { userId } }, res) => {
+router.delete("/:userId", async ({ params: { userId } }, res) => {
   if (!isValidObjectId(userId)) return res.sendStatus(404);
 
   const user = await User.findByIdAndDelete(userId);
@@ -68,7 +68,7 @@ router.delete('/:userId', async ({ params: { userId } }, res) => {
 });
 
 // „Unacześnienie” wybranych danych użytkownika o podanym userId
-router.patch('/:userId', async ({ params: { userId }, body }, res) => {
+router.patch("/:userId", async ({ params: { userId }, body }, res) => {
   const userQuery = new User({
     id: userId,
     date: new Date(body.date),
