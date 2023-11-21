@@ -26,6 +26,6 @@
       "bun-types" // add Bun global
     ]
   },
-  "include": ["/**/*.ts", "main.js"],
+  "include": ["./**/*.ts", "./**/*.d.ts"],
   "exclude": ["node_modules"]
 }

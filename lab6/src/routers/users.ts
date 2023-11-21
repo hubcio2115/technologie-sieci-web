@@ -1,24 +1,29 @@
-import { Router } from "express";
-import User from "~/models/User";
-import { isValidObjectId } from "mongoose";
-import { checkAuthenticated } from "~/middlewares/isAuthed";
+import { Router } from 'express';
+import User from '~/models/User';
+import { isValidObjectId } from 'mongoose';
+import { checkAuthenticated } from '~/middlewares/isAuthed';
 
 const router = Router();
 
 // Pobranie danych wszystkich użytkowników
-router.get("/", checkAuthenticated, async (req, res) => {
+router.get('/', checkAuthenticated, async (req, res) => {
   const users = await User.find({});
 
-  return res.render("index", { users, user: req.user });
+  return res.render('index', { users, user: req.user });
 });
 
 // Utworzenie nowego użytkownika
-router.post("/", async ({ body }, res) => {
+router.post('/create', checkAuthenticated, async ({ body, user }, res) => {
+  if (user!.role !== 'admin') {
+    res.status(403);
+    return res.send({ message: 'Unauthorized' });
+  }
+
   const userData = {
     username: body.username,
     email: body.email,
     registrationDate: new Date(),
-    role: "user",
+    role: 'user',
   };
 
   const newUser = new User(userData);
@@ -28,59 +33,65 @@ router.post("/", async ({ body }, res) => {
 
   await newUser.save();
 
-  return res.redirect("/users");
+  return res.redirect('/users');
 });
 
 // Pobranie danych użytkownika o podanym userId
-router.get("/:userId", async ({ params: { userId } }, res) => {
-  if (!isValidObjectId(userId)) return res.sendStatus(404);
+router.get(
+  '/:userId',
+  checkAuthenticated,
+  async ({ params: { userId } }, res) => {
+    if (!isValidObjectId(userId)) return res.sendStatus(404);
 
-  const user = await User.findById(userId);
+    const user = await User.findById(userId);
 
-  return res.render("userDetails", { user });
-});
+    return res.render('userDetails', { user });
+  },
+);
 
 // Zastąpienie danych użytkownika o podanym userId nowym „kompletem”
-router.put("/:userId", async ({ body, params: { userId } }, res) => {
-  if (!isValidObjectId(userId)) return res.sendStatus(404);
+router.put(
+  '/:userId',
+  checkAuthenticated,
+  async ({ body, params: { userId }, user }, res) => {
+    if (!isValidObjectId(userId)) return res.sendStatus(404);
 
-  const userData = { id: userId, date: new Date(body.date), ...body };
+    if (user!.role !== 'admin' || user!.id !== userId) {
+      res.status(403);
+      return res.send({ message: 'Unauthorized' });
+    }
 
-  const newUser = new User(userData);
+    const userData = { id: userId, date: new Date(body.date), ...body };
 
-  const err = newUser.validateSync();
-  if (err) return res.sendStatus(400);
+    const newUser = new User(userData);
 
-  const user = await newUser.replaceOne();
+    const err = newUser.validateSync();
+    if (err) return res.sendStatus(400);
 
-  return res.send(user);
-});
+    const createdUser = await newUser.replaceOne();
+
+    return res.send(createdUser);
+  },
+);
 
 // Usuniecie użytkownika o podanym userId
-router.delete("/:userId", async ({ params: { userId } }, res) => {
-  if (!isValidObjectId(userId)) return res.sendStatus(404);
+router.delete(
+  '/:userId',
+  checkAuthenticated,
+  async ({ params: { userId }, user }, res) => {
+    if (!isValidObjectId(userId)) return res.sendStatus(404);
 
-  const user = await User.findByIdAndDelete(userId);
+    if (user!.role !== 'admin' || user!.id !== userId) {
+      res.status(403);
+      return res.send({ message: 'Unauthorized' });
+    }
 
-  if (!user) return res.sendStatus(404);
+    const deletedUser = await User.findByIdAndDelete(userId);
 
-  return res.send(user);
-});
+    if (!user) return res.sendStatus(404);
 
-// „Unacześnienie” wybranych danych użytkownika o podanym userId
-router.patch("/:userId", async ({ params: { userId }, body }, res) => {
-  const userQuery = new User({
-    id: userId,
-    date: new Date(body.date),
-    ...body,
-  });
-
-  const err = userQuery.validateSync();
-  if (err) return res.sendStatus(400);
-
-  const user = await userQuery.updateOne();
-
-  return res.send(user);
-});
+    return res.send(deletedUser);
+  },
+);
 
 export default router;

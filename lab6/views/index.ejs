@@ -10,8 +10,11 @@
     <ul>
       <% users.map(({_id, username, email}) => { %>
       <li id="user_<%= _id.toString() %>">
-        <a href=""><%= username %>: <%= email %></a>
+        <a href="http://localhost:3000/users/<%= _id.toString() %>"
+          ><%= username %>: <%= email %></a
+        >
 
+        <% if (user.role === "admin" || user.id === _id.toString()){%>
         <button
           type="button"
           hx-delete="http://localhost:3000/users/<%= _id.toString() %>"
@@ -20,6 +23,7 @@
         >
           delete
         </button>
+        <% } %>
       </li>
       <%}) %>
     </ul>
