@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="en">
+  <%- include('./partials/head.ejs') %>
+  <body>
+    <h1>Admin</h1>
+    <a href="http://localhost:3000/auth/logout">logout</a>
+
+    <%- include("./partials/addUserForm.ejs") %>
+
+    <ul>
+      <% users.map(({_id, username, email}) => { %>
+      <li id="user_<%= _id.toString() %>">
+        <a href="http://localhost:3000/users/<%= _id.toString() %>"
+          ><%= username %>: <%= email %></a
+        >
+
+        <% if (user.role === "admin" || user.id === _id.toString()){%>
+        <button
+          type="button"
+          hx-delete="http://localhost:3000/users/<%= _id.toString() %>"
+          hx-target="#user_<%= _id.toString() %>"
+          hx-swap="delete"
+        >
+          delete
+        </button>
+        <% } %>
+      </li>
+      <%}) %>
+    </ul>
+  </body>
+</html>
