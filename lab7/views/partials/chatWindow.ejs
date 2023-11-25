@@ -1,0 +1,22 @@
+<div
+  style="
+    position: absolute;
+    right: 0;
+    bottom: 0;
+    display: flex;
+    flex-direction: column;
+  "
+>
+  <ul
+    id="history"
+    style="display: flex; flex-direction: column; list-style-type: none"
+  ></ul>
+
+  <form onsubmit="onSubmit(event)">
+    <input type="text" id="input" />
+    <button type="submit">Send</button>
+  </form>
+</div>
+
+<script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
+<script src="/chat.js"></script>
