@@ -2,14 +2,15 @@ import { Router } from 'express';
 import User from '~/models/User';
 import { isValidObjectId } from 'mongoose';
 import { checkAuthenticated } from '~/middlewares/isAuthed';
+import Chat from '~/models/Chat';
 
 const router = Router();
 
 // Pobranie danych wszystkich użytkowników
 router.get('/', checkAuthenticated, async (req, res) => {
-  const users = await User.find({});
+  const [users, messages] = await Promise.all([User.find({}), Chat.find({})]);
 
-  return res.render('index', { users, user: req.user });
+  return res.render('index', { users, user: req.user, messages });
 });
 
 // Utworzenie nowego użytkownika

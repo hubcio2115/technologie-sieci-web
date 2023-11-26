@@ -10,9 +10,13 @@
   <ul
     id="history"
     style="display: flex; flex-direction: column; list-style-type: none"
-  ></ul>
+  >
+    <% messages.map(({message }) => { %>
+    <li><%= message %></li>
+    <% }) %>
+  </ul>
 
-  <form onsubmit="onSubmit(event)">
+  <form onsubmit="onSubmit(event, '<%= user.id %>')">
     <input type="text" id="input" />
     <button type="submit">Send</button>
   </form>

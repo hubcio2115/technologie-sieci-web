@@ -11,6 +11,7 @@ import users from '~/routers/users';
 import MongoStore from 'connect-mongo';
 import passport from 'passport';
 import { createAdapter } from '@socket.io/mongo-adapter';
+import Chat from './models/Chat';
 
 const app = express();
 app.use(express.json());
@@ -44,9 +45,19 @@ const server = createServer(app);
 const io = new Server(server);
 
 io.on('connection', (socket) => {
-  socket.on('chat message', (message: string) => {
-    io.emit('chat message', message);
-  });
+  socket.on(
+    'chat message',
+    async (message: { message: string; userId: string }) => {
+      const newMessage = new Chat(message);
+
+      const err = newMessage.validateSync();
+      if (err) console.error(err);
+
+      await newMessage.save();
+
+      io.emit('chat message', message);
+    },
+  );
 });
 
 // Łączymy się z bazą MongoDB i jeśli się to uda, uruchamiamy serwer API.
