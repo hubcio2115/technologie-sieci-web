@@ -1,0 +1,15 @@
+<form
+  action="<%= `${process.env.API_HOST}:${process.env.PORT}` %>/auth/register"
+  method="post"
+>
+  <label for="login">Login: </label>
+  <input type="text" id="login" required name="username" />
+
+  <label for="email">Email: </label>
+  <input type="email" id="email" required name="email" />
+
+  <label for="password">Password: </label>
+  <input type="password" id="password" required name="password" />
+
+  <button type="submit">Register</button>
+</form>
