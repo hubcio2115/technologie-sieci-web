@@ -3,24 +3,31 @@
     position: absolute;
     right: 0;
     bottom: 0;
-    display: flex;
-    flex-direction: column;
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
   "
 >
-  <ul
-    id="history"
-    style="display: flex; flex-direction: column; list-style-type: none"
-  >
-    <% messages.map(({message }) => { %>
-    <li><%= message %></li>
-    <% }) %>
+  <ul id="chatList">
+    <li onclick="changeRoom('global')" style="cursor: pointer">global</li>
+    <li onclick="changeRoom('notGlobal')" style="cursor: pointer">notGlobal</li>
   </ul>
 
-  <form onsubmit="onSubmit(event, '<%= user.id %>')">
-    <input type="text" id="input" />
-    <button type="submit">Send</button>
-  </form>
+  <div style="display: flex; flex-direction: column">
+    <ul
+      id="history"
+      style="display: flex; flex-direction: column; list-style-type: none"
+    >
+      <% messages.map(({ message }) => { %>
+      <li><%= message %></li>
+      <% }) %>
+    </ul>
+
+    <form onsubmit="onSubmit(event, '<%= user.id %>')">
+      <input type="text" id="input" />
+      <button type="submit">Send</button>
+    </form>
+  </div>
 </div>
 
 <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
-<script src="/chat.js"></script>
+<script defer src="/chat.js"></script>

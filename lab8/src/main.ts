@@ -8,6 +8,7 @@ import { Server } from 'socket.io';
 import { env } from '~/env';
 import auth from '~/routers/auth';
 import users from '~/routers/users';
+import chats from '~/routers/chats';
 import MongoStore from 'connect-mongo';
 import passport from 'passport';
 import { createAdapter } from '@socket.io/mongo-adapter';
@@ -40,24 +41,39 @@ app.set('view engine', 'ejs');
 // znajdującym się w podkatalogu „routes”
 app.use('/auth', auth);
 app.use('/users', users);
+app.use('/chats', chats);
 
 const server = createServer(app);
 const io = new Server(server);
 
-io.on('connection', (socket) => {
-  socket.on(
-    'chat message',
-    async (message: { message: string; userId: string }) => {
-      const newMessage = new Chat(message);
+io.of('/global').on('connection', (socket) => {
+  console.log('connected to global');
 
-      const err = newMessage.validateSync();
-      if (err) console.error(err);
+  socket.on('message', async (message: { message: string; userId: string }) => {
+    const newMessage = new Chat({ room: '/global', ...message });
 
-      await newMessage.save();
+    const err = newMessage.validateSync();
+    if (err) console.error(err);
 
-      io.emit('chat message', message);
-    },
-  );
+    await newMessage.save();
+
+    socket.emit('message', message);
+  });
+});
+
+io.of('/notGlobal').on('connection', (socket) => {
+  console.log('connected to notGlobal');
+
+  socket.on('message', async (message: { message: string; userId: string }) => {
+    const newMessage = new Chat({ room: '/notGlobal', ...message });
+
+    const err = newMessage.validateSync();
+    if (err) console.error(err);
+
+    await newMessage.save();
+
+    socket.emit('message', message);
+  });
 });
 
 // Łączymy się z bazą MongoDB i jeśli się to uda, uruchamiamy serwer API.

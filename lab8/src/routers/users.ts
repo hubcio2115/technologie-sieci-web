@@ -8,7 +8,10 @@ const router = Router();
 
 // Pobranie danych wszystkich użytkowników
 router.get('/', checkAuthenticated, async (req, res) => {
-  const [users, messages] = await Promise.all([User.find({}), Chat.find({})]);
+  const [users, messages] = await Promise.all([
+    User.find({}),
+    Chat.find({ room: '/global' }),
+  ]);
 
   return res.render('index', { users, user: req.user, messages });
 });
