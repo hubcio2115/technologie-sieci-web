@@ -15,6 +15,8 @@ const app = createApp({
 
   methods: {
     opponentAttack() {
+      if (this.opponentHealth <= 0) return;
+
       const value = getRandomValue(10, 20);
 
       this.playerHealth -= value;
