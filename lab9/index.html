@@ -22,6 +22,17 @@
         <h2>Opponent</h2>
 
         <div class="healthbar">
+          <span
+            style="
+              position: absolute;
+              height: 100%;
+              width: 100%;
+              display: flex;
+              align-items: center;
+              justify-content: center;
+            "
+            >{{opponentHealth}}%</span
+          >
           <div class="healthbar__value" :style="opponentBarStyles"></div>
         </div>
       </section>
@@ -30,6 +41,18 @@
         <h2>Player</h2>
 
         <div class="healthbar">
+          <div
+            style="
+              position: absolute;
+              height: 100%;
+              width: 100%;
+              display: flex;
+              align-items: center;
+              justify-content: center;
+            "
+          >
+            {{playerHealth}}%
+          </div>
           <div class="healthbar__value" :style="playerBarStyles"></div>
         </div>
       </section>
@@ -50,6 +73,7 @@
 
       <section id="controls" v-else>
         {{playerHealth >= 0 ? "You won!" : "You lost!"}}
+        <button @click="playerConcede">Play Again?</button>
       </section>
 
       <section id="log" class="container">

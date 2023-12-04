@@ -3,12 +3,12 @@
 }
 
 html {
-  font-family: 'Jost', sans-serif;
+  font-family: "Jost", sans-serif;
 }
 
 body {
   margin: 0;
-  background-color:aliceblue;
+  background-color: aliceblue;
 }
 
 header {
@@ -32,6 +32,7 @@ section {
   border: 1px solid #575757;
   margin: 1rem 0;
   background: #d8d8d8;
+  position: relative;
 }
 
 .healthbar__value {
