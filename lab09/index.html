@@ -1,0 +1,74 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Vue.js – simple game</title>
+    <link
+      href="https://fonts.googleapis.com/css2?family=Jost:wght@400;700&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="style.css" />
+    <script src="main.js" type="module" defer></script>
+  </head>
+
+  <body>
+    <header>
+      <h1>Battle Game</h1>
+    </header>
+
+    <div id="game">
+      <section id="opponent" class="container">
+        <h2>Opponent</h2>
+
+        <div class="healthbar">
+          <div class="healthbar__value" :style="opponentBarStyles"></div>
+        </div>
+      </section>
+
+      <section id="player" class="container">
+        <h2>Player</h2>
+
+        <div class="healthbar">
+          <div class="healthbar__value" :style="playerBarStyles"></div>
+        </div>
+      </section>
+
+      <section id="controls" v-if="isGameRunning">
+        <button @click="playerAttack">attack</button>
+
+        <button @click="specialAttack" :disabled="history.length % 3 === 0">
+          attack++
+        </button>
+
+        <button @click="playerHeal" :disabled="history.length % 5 === 0">
+          heal
+        </button>
+
+        <button @click="playerConcede">concede</button>
+      </section>
+
+      <section id="controls" v-else>
+        {{playerHealth >= 0 ? "You won!" : "You lost!"}}
+      </section>
+
+      <section id="log" class="container">
+        <h2>Battle Log</h2>
+
+        <ul v-for="({who, what, byHowMuch}, index) in history">
+          <li key="index">
+            <span :class="who === 'player' ? 'log--player' : 'log-opponent'"
+              >{{who}}
+            </span>
+
+            {{what}} for
+
+            <span :class="what === 'attacked' ? 'log--damage' : 'log-heal'">
+              {{byHowMuch}}</span
+            >
+          </li>
+        </ul>
+      </section>
+    </div>
+  </body>
+</html>
