@@ -13,9 +13,6 @@ const isGameRunning = computed(
 
 /**
  * @typedef {{who: "opponent" | "player"; what: "attacked" | "healed"; byHowMuch: number;}} Round
- */
-
-/**
  * @type {import("vue").Ref<Round[]>}
  */
 const history = ref([]);
