@@ -1,24 +1,29 @@
 <script setup>
 import { computed } from "vue";
 
-/**
- * @type {{
- *   id: "opponent" | "player";
- *   health: number;
+const props = /** @type {{
+ *   readonly id: "opponent" | "player";
+ *   readonly health: number;
  * }}
- */
-const props = defineProps({
-  health: {
-    required: true,
-    type: Number,
-  },
-  id: {
-    required: true,
-    validator(value) {
-      return ["opponent", "player"].includes(value);
+ */ (
+  defineProps({
+    health: {
+      required: true,
+      type: Number,
     },
-  },
-});
+    id: {
+      required: true,
+      type: String,
+      /**
+       * @param {string} value
+       * @returns {boolean}
+       */
+      validator(value) {
+        return ["opponent", "player"].includes(value);
+      },
+    },
+  })
+);
 
 const barStyle = computed(() => {
   return {
